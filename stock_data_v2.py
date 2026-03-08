@@ -325,7 +325,7 @@ class StockDataV2:
         """根据股票名称模糊搜索股票代码，返回第一个匹配的代码，找不到返回 None"""
         try:
             url = f"http://suggest3.sinajs.cn/suggest/type=11,12&key={name}"
-            resp = requests.get(url, headers=self.headers, timeout=5)
+            resp = requests.get(url, headers=self.headers, timeout=2)
             resp.encoding = 'gbk'
             text = resp.text
             # 格式: var suggestvalue="股票名,type,code,..."
@@ -334,7 +334,7 @@ class StockDataV2:
                 if content:
                     first = content.split(';')[0]
                     parts = first.split(',')
-                    if len(parts) >= 3:
+                    if len(parts) >= 3 and name in parts[0]:
                         return parts[2]  # 股票代码
         except Exception:
             pass

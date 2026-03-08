@@ -45,9 +45,9 @@ class ChatBotHandler(dingtalk_stream.ChatbotHandler):
         # 优先识别 6 位数字代码，否则从句子中提取中文词逐一搜索
         stock_code = self.parse_stock_code(text)
         if not stock_code:
-            # 提取所有 2~6 个汉字的子串，从长到短尝试匹配
-            cn_words = re.findall(r'[\u4e00-\u9fa5]{2,6}', text)
-            cn_words = sorted(set(cn_words), key=len, reverse=True)
+            # 提取 3~6 个汉字的子串（过滤太短的词），从长到短最多尝试 3 个
+            cn_words = re.findall(r'[\u4e00-\u9fa5]{3,6}', text)
+            cn_words = sorted(set(cn_words), key=len, reverse=True)[:3]
             for word in cn_words:
                 code = self.stock_data.search_stock_code(word)
                 if code:
