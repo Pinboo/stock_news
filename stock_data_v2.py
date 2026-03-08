@@ -321,6 +321,25 @@ class StockDataV2:
         except:
             return None
     
+    def search_stock_code(self, name):
+        """根据股票名称模糊搜索股票代码，返回第一个匹配的代码，找不到返回 None"""
+        try:
+            url = f"http://suggest3.sinajs.cn/suggest/type=11,12&key={name}"
+            resp = requests.get(url, headers=self.headers, timeout=5)
+            resp.encoding = 'gbk'
+            text = resp.text
+            # 格式: var suggestvalue="股票名,type,code,..."
+            if 'suggestvalue="' in text:
+                content = text.split('suggestvalue="')[1].split('"')[0]
+                if content:
+                    first = content.split(';')[0]
+                    parts = first.split(',')
+                    if len(parts) >= 3:
+                        return parts[2]  # 股票代码
+        except Exception:
+            pass
+        return None
+
     def get_stock_realtime(self, stock_code):
         """获取个股实时行情（多数据源）"""
         # 数据源优先级：Baostock > 腾讯 > 新浪 > Tushare > 东方财富
