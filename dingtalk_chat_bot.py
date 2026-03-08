@@ -42,12 +42,18 @@ class ChatBotHandler(dingtalk_stream.ChatbotHandler):
         """根据消息内容实时抓取相关市场数据，作为 AI 的上下文"""
         context_parts = []
 
-        # 优先识别 6 位数字代码，否则尝试按名称搜索
+        # 优先识别 6 位数字代码，否则从句子中提取中文词逐一搜索
         stock_code = self.parse_stock_code(text)
         if not stock_code:
-            stock_code = self.stock_data.search_stock_code(text)
-            if stock_code:
-                logging.info(f"🔍 按名称找到股票代码: {stock_code}")
+            # 提取所有 2~6 个汉字的子串，从长到短尝试匹配
+            cn_words = re.findall(r'[\u4e00-\u9fa5]{2,6}', text)
+            cn_words = sorted(set(cn_words), key=len, reverse=True)
+            for word in cn_words:
+                code = self.stock_data.search_stock_code(word)
+                if code:
+                    stock_code = code
+                    logging.info(f"🔍 按名称「{word}」找到股票代码: {stock_code}")
+                    break
         if stock_code:
             logging.info(f"📈 获取个股数据: {stock_code}")
             stock_info = self.stock_data.get_stock_realtime(stock_code)
